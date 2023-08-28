@@ -1,0 +1,47 @@
+:root {
+    --tangerine: #FA8128;
+    --tangerine-hover: #e16b17;
+    --mimosa: #ffd500;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--tangerine);
+}
+
+header {
+
+}
+
+h1 {
+    font-family: 'Original Surfer', cursive;
+}
+
+p {
+    font-family: 'Kanit', sans-serif;
+}
+
+
+.game-board {
+    display: grid;
+    height: 500px;
+    width: 500px;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    border: 5px solid var(--mimosa);
+    border-radius: 20px;
+    background-color: var(--mimosa);
+}
+
+.cell {
+    border: 5px solid var(--mimosa);
+    border-radius: 20px;
+    background-color: var(--tangerine);
+}
+
+.cell:hover {
+    background-color: var(--tangerine-hover);
+}
