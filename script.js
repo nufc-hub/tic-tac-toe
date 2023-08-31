@@ -1,49 +1,3 @@
-const gameBoard = (() => {
-    //const rows = (width) => //set width of gameboard;
-    //const columns = (height) => //set height of gameboard
-    const boardContent = [ // 2D array that represents the game board. //
-        ['O','X','O'],
-        ['X','O','X'],
-        ['O','X','O'],
-    ];
-
-    const cellElements = [];
-
-    const initializeGameBoard = () => { //function to render contents of array to webpage
-        const board = document.querySelector('.game-board');
-        
-        for (let i = 0; i < board.children.length; i++) {// Iterates through cells in game board.
-
-            cellElements.push(board.children[i]) // Adds each child element in board to cellElements array. //
-            }
-        }
-
-    const renderGameBoard = () => { // Loops through contents of boardContent array //
-
-        for (let i = 0; i < boardContent.length; i++) { // Loops through each row in array. //
-            
-            for (let j = 0; j < boardContent[i].length; j++) { //Loops through each cell in array. //
-                
-                const cellValue = boardContent[i][j]; // This extracts the value of the current row [i] and column [j] in boardContent array. //
-
-                const cellIndex = i * boardContent.length + j; // This calculates a linear index that corresponds to the current row(i) & column(j). Using this index allows you to access the appropriate cell element that corresponds to the current position in the boardContent array. // 
-
-                cellElements[cellIndex].textContent = cellValue; // This sets the text content of the cellElement(s). //
-            } 
-        }
-    }
-
-    return {
-        initializeGameBoard: initializeGameBoard,
-        renderGameBoard: renderGameBoard
-    }
-
-
-})();
-
-gameBoard.initializeGameBoard();
-gameBoard.renderGameBoard();
-
 const playerFactory = (marker) => {
     const declareWinner = () => console.log(`${marker} is the winner.`);
 
@@ -53,6 +7,52 @@ const playerFactory = (marker) => {
 
 const playerOne = playerFactory('X');
 const playerTwo = playerFactory('O');
+
+const gameBoard = (() => {
+    //const rows = (width) => //set width of gameboard;
+    //const columns = (height) => //set height of gameboard
+    const boardContent = [ // 2D array that represents the game board. //
+        ['','',''],
+        ['','',''],
+        ['','',''],
+    ];
+
+    const cellElements = []; // This holds the .game-board children elements (i.e. the game board html cells)
+
+    const initializeGameBoard = () => { // Puts the game-board children elements into cellElements array.
+        const board = document.querySelector('.game-board');
+        
+        for (let i = 0; i < board.children.length; i++) {// Iterates through game-board children (i.e. class=cell) html elements.
+
+            const cellElement = board.children[i]; //This is a single cell element on the game board.
+            
+            cellElements.push(board.children[i]) // Adds each child element in game-board to cellElements array. //
+            
+            cellElement.addEventListener('click', placeMarker); // Adds an event listener to each cellElement
+            }
+        }
+
+    const placeMarker = (event) => {
+        const clickedElement = event.target; // event.target is the element that was clicked
+        const cellIndex = cellElements.indexOf(clickedElement); // This is to determine the clicked cells position - find it's index. 
+        const row = Math.floor(cellIndex / 3);
+        const col = cellIndex % 3;
+
+        boardContent[row][col] = playerOne.marker; // Put the marker value into into the boardContent array at the position the cell was clicked
+
+        clickedElement.textContent = boardContent[row][col]; // Sets the text content of the cell elements to whatever the boardContent array values are.
+        }
+
+    return {
+        initializeGameBoard: initializeGameBoard,
+    }
+
+
+})();
+
+gameBoard.initializeGameBoard();
+//gameBoard.renderGameBoard();
+
 
 
 const gamePlay = (() => {
