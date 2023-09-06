@@ -78,10 +78,10 @@ const gameBoard = (() => {
         turnMessageSelector.textContent = turnMessage;
     }; // This is to change the text content of the game message.
 
-    const winMessageSelector = document.querySelector()
+    const winMessageSelector = document.querySelector('.game-message');
 
     const setWinMessage = () => {
-
+        winMessageSelector.textContent = ', is the winner.'
     }
 
     const initializeGameBoard = () => { // Puts the game-board children elements into cellElements array.
@@ -101,7 +101,8 @@ const gameBoard = (() => {
 
     return {
         initializeGameBoard: initializeGameBoard,
-        setTurnMessage: setTurnMessage
+        setTurnMessage: setTurnMessage,
+        setWinMessage: setWinMessage
     }
 
 
