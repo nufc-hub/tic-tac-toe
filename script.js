@@ -1,12 +1,13 @@
-const playerFactory = (marker) => {
+const playerFactory = (marker, name) => {
     const declareWinner = () => console.log(`${marker} is the winner.`);
 
     return {marker,
+            name,
             declareWinner,};
 }
 
-const playerOne = playerFactory('X');
-const playerTwo = playerFactory('O');
+const playerOne = playerFactory('X', 'Player 1');
+const playerTwo = playerFactory('O', 'Player 2');
 
 const gameLogic = (() => {
     
@@ -21,17 +22,40 @@ const gameLogic = (() => {
     ];
 
     const setCurrentTurn = () => {
-            currentPlayer === playerOne ? currentPlayer = playerTwo : currentPlayer = playerOne; // Controls turn order.
-        }
-
-    const checkWinCondition = (row, col) => {
-
-        // if row || or col === 'X' || or 'O' 
-        //
+        currentPlayer === playerOne ? currentPlayer = playerTwo : currentPlayer = playerOne; // Controls turn order.
     }
 
+    const checkWinCondition = (boardContent, currentPlayer) => {
         
-    
+        for(let i = 0; i < 3; i++) {
+            if (boardContent[i][0] === currentPlayer.marker &&
+                boardContent[i][1] === currentPlayer.marker &&
+                boardContent[i][2] === currentPlayer.marker) {
+                
+                gameBoard.setWinMessage(currentPlayer);
+            }            
+        }
+
+        for(let j = 0; j < 3; j++) {
+            if (boardContent[0][j] === currentPlayer.marker &&
+                boardContent[1][j] === currentPlayer.marker &&
+                boardContent[2][j] === currentPlayer.marker) {
+                
+                gameBoard.setWinMessage(currentPlayer);
+            }
+        }
+
+        if(boardContent[0][0] === currentPlayer.marker &&
+            boardContent[1][1] === currentPlayer.marker &&
+            boardContent[2][2] === currentPlayer.marker ||
+            boardContent[0][2] === currentPlayer.marker &&
+            boardContent[1][1] === currentPlayer.marker &&
+            boardContent[2][0] === currentPlayer.marker) {
+
+                gameBoard.setWinMessage(currentPlayer);
+            }
+    }
+ 
     const placeMarker = (event, cellElements) => {
  
         const clickedElement = event.target; // event.target is the element that was clicked
@@ -47,11 +71,13 @@ const gameLogic = (() => {
             
             clickedElement.textContent = boardContent[row][col]; // Sets the text content of the cell elements to whatever the boardContent array values are.
 
+            checkWinCondition(boardContent, currentPlayer);
+
             setCurrentTurn(); // Next players turn
 
             gameBoard.setTurnMessage(currentPlayer);
 
-            checkWinCondition(row, col)
+            
 
         }
     }
@@ -80,8 +106,8 @@ const gameBoard = (() => {
 
     const winMessageSelector = document.querySelector('.game-message');
 
-    const setWinMessage = () => {
-        winMessageSelector.textContent = ', is the winner.'
+    const setWinMessage = (currentPlayer) => {
+        winMessageSelector.textContent = `${currentPlayer.name}, is the winner.`
     }
 
     const initializeGameBoard = () => { // Puts the game-board children elements into cellElements array.
