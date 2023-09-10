@@ -13,23 +13,32 @@
 <body>
     <header>
         <div>
-            <h1>Tic Tac Toe</h1>
+            <div class="page-title">Tic Tac Toe</div>
         </div>
         <div>
-            <p><span>Player 1</span>, take your turn.</p>
+            <p class="game-message"><span class="player">Player 1</span>, take your turn.</p>
         </div>
     </header>
-    <div class="grid-container">
-        <div class="game-board">
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
+    <div class="middle">
+        <div class="select-player">
+            <button class="player-x">X</button>
+            <button class="player-o">O</button>
+        </div>
+        <div class="grid-container">
+            <div class="game-board">
+                <div class="cell"></div>
+                <div class="cell"></div>
+                <div class="cell"></div>
+                <div class="cell"></div>
+                <div class="cell"></div>
+                <div class="cell"></div>
+                <div class="cell"></div>
+                <div class="cell"></div>
+                <div class="cell"></div>
+            </div>
+        </div>
+        <div>
+            <button class="restart-button">Restart</button>
         </div>
     </div>
 </body>
