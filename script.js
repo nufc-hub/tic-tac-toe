@@ -1,9 +1,7 @@
 const playerFactory = (marker, name) => {
-    const declareWinner = () => console.log(`${marker} is the winner.`);
 
     return {marker,
-            name,
-            declareWinner,};
+            name};
 }
 
 const playerOne = playerFactory('X', 'Player 1');
@@ -11,7 +9,12 @@ const playerTwo = playerFactory('O', 'Player 2');
 
 const gameLogic = (() => {
     
-    let currentPlayer = playerOne; //Sets the current player
+    //Sets the current player
+    let currentPlayer = playerOne
+
+    // This is the default board state. If win condition has been met it will change to true.
+    let endGameConditionMet = false;
+
 
     //const rows = (width) => //set width of gameboard;
     //const columns = (height) => //set height of gameboard
@@ -21,18 +24,22 @@ const gameLogic = (() => {
         ['','',''],
     ];
 
+    // Controls turn order.
     const setCurrentTurn = () => {
         currentPlayer === playerOne ? currentPlayer = playerTwo : currentPlayer = playerOne; // Controls turn order.
     }
 
-    const checkWinCondition = (boardContent, currentPlayer) => {
+    // Checks to see if a win condition has been met.
+    const checkWinCondition = (currentPlayer) => {
         
         for(let i = 0; i < 3; i++) {
             if (boardContent[i][0] === currentPlayer.marker &&
                 boardContent[i][1] === currentPlayer.marker &&
                 boardContent[i][2] === currentPlayer.marker) {
                 
-                gameBoard.setWinMessage(currentPlayer);
+                endGameConditionMet = true
+                gameBoard.setWinMessage(currentPlayer); // Indicates who the winner is.
+                return;
             }            
         }
 
@@ -41,7 +48,9 @@ const gameLogic = (() => {
                 boardContent[1][j] === currentPlayer.marker &&
                 boardContent[2][j] === currentPlayer.marker) {
                 
+                endGameConditionMet = true;
                 gameBoard.setWinMessage(currentPlayer);
+                return;
             }
         }
 
@@ -52,10 +61,20 @@ const gameLogic = (() => {
             boardContent[1][1] === currentPlayer.marker &&
             boardContent[2][0] === currentPlayer.marker) {
 
+                endGameConditionMet = true;
                 gameBoard.setWinMessage(currentPlayer);
             }
     }
- 
+
+    const checkTieCondition = () => { 
+        const arrayIsFull = boardContent.every(row => row.every(cell => cell !== ''));
+
+        if(arrayIsFull) {
+            endGameConditionMet = true;
+            gameBoard.setTieMessage();
+        }
+    }
+
     const placeMarker = (event, cellElements) => {
  
         const clickedElement = event.target; // event.target is the element that was clicked
@@ -65,17 +84,19 @@ const gameLogic = (() => {
 
 
         //Only allows a marker to be placed when the position in the boardContent array is empty.
-        if (boardContent[row][col] === '') {
+        if (boardContent[row][col] === '' && endGameConditionMet === false) {
 
             boardContent[row][col] = currentPlayer.marker; // Put the marker value into into the boardContent array at the position the cell was clicked.
             
             clickedElement.textContent = boardContent[row][col]; // Sets the text content of the cell elements to whatever the boardContent array values are.
 
-            checkWinCondition(boardContent, currentPlayer);
+            checkWinCondition(currentPlayer); // Checks if win condition has been met.
+
+            checkTieCondition(); //Checks if tie condition has been met.
 
             setCurrentTurn(); // Next players turn
 
-            gameBoard.setTurnMessage(currentPlayer);
+            gameBoard.setTurnMessage(currentPlayer); //Indicates which players turn it is.
 
             
 
@@ -106,8 +127,14 @@ const gameBoard = (() => {
 
     const winMessageSelector = document.querySelector('.game-message');
 
+    //This is the text that will be displayed when a win condition has been met.
     const setWinMessage = (currentPlayer) => {
         winMessageSelector.textContent = `${currentPlayer.name}, is the winner.`
+    }
+
+    //This is the text that will be displayed when a tie has occurred.
+    const setTieMessage = () => {
+        winMessageSelector.textContent = `It's a tie.`;
     }
 
     const initializeGameBoard = () => { // Puts the game-board children elements into cellElements array.
@@ -128,7 +155,8 @@ const gameBoard = (() => {
     return {
         initializeGameBoard: initializeGameBoard,
         setTurnMessage: setTurnMessage,
-        setWinMessage: setWinMessage
+        setWinMessage: setWinMessage,
+        setTieMessage: setTieMessage
     }
 
 
