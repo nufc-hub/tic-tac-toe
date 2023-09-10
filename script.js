@@ -1,11 +1,10 @@
-const playerFactory = (marker, name) => {
+const playerFactory = (marker) => {
 
-    return {marker,
-            name};
+    return {marker};
 }
 
-const playerOne = playerFactory('X', 'Player 1');
-const playerTwo = playerFactory('O', 'Player 2');
+const playerOne = playerFactory('X');
+const playerTwo = playerFactory('O');
 
 const gameLogic = (() => {
     
@@ -23,6 +22,26 @@ const gameLogic = (() => {
         ['','',''],
         ['','',''],
     ];
+
+    //Use this to pass currentPlayer variable to the gameBoard module.
+    //This is so currentPlayer variable does not need to be exposed outside gameLogic module.
+    const getCurrentPlayer = () => {
+        return currentPlayer;
+    }
+
+    // This is to be passed to event listener in gameBoard module.
+    // Used to select starting player.
+    const setPlayerOne = () => {
+        currentPlayer = playerOne;
+        gameBoard.setTurnMessage(currentPlayer);
+    }
+
+    // This is to be passed to event listener in gameBoard module.
+    // Used to select starting player.
+    const setPlayerTwo = () => {
+        currentPlayer = playerTwo;
+        gameBoard.setTurnMessage(currentPlayer);
+    }
 
     // Controls turn order.
     const setCurrentTurn = () => {
@@ -66,8 +85,9 @@ const gameLogic = (() => {
             }
     }
 
+    // This checks for a tie.
     const checkTieCondition = () => { 
-        const arrayIsFull = boardContent.every(row => row.every(cell => cell !== ''));
+        const arrayIsFull = boardContent.every(row => row.every(cell => cell !== '')); //This checks to make sure no cell is empty in the array.
 
         if(arrayIsFull) {
             endGameConditionMet = true;
@@ -104,24 +124,20 @@ const gameLogic = (() => {
     }
 
     return {
+        getCurrentPlayer: getCurrentPlayer,
+        setPlayerOne: setPlayerOne,
+        setPlayerTwo: setPlayerTwo,
         placeMarker: placeMarker
     }
 })();
 
+
 const gameBoard = (() => {
-    
-    //const boardSize = 3 // use if wanting to add ability to change board size. 
-    // This could be added to the row and col variables in placeMarker function 
-    // instead of using the number 3. 
-
-    const board = document.querySelector('.game-board'); // Selects game board div.
-
-    const cellElements = []; // This holds the .game-board children elements (i.e. the game board html cells)
 
     const turnMessageSelector = document.querySelector('.player');  // Selects the span element in the game message in UI.
 
     const setTurnMessage = (currentPlayer) => {
-        const turnMessage = turnMessageSelector.textContent = currentPlayer === playerTwo ? 'Player 2' : 'Player 1';
+        const turnMessage = turnMessageSelector.textContent = currentPlayer === playerTwo ? 'O' : 'X';
         turnMessageSelector.textContent = turnMessage;
     }; // This is to change the text content of the game message.
 
@@ -129,13 +145,21 @@ const gameBoard = (() => {
 
     //This is the text that will be displayed when a win condition has been met.
     const setWinMessage = (currentPlayer) => {
-        winMessageSelector.textContent = `${currentPlayer.name}, is the winner.`
+        winMessageSelector.textContent = `${currentPlayer.marker}, is the winner.`
     }
 
     //This is the text that will be displayed when a tie has occurred.
     const setTieMessage = () => {
         winMessageSelector.textContent = `It's a tie.`;
     }
+
+    //const boardSize = 3 // use if wanting to add ability to change board size. 
+    // This could be added to the row and col variables in placeMarker function 
+    // instead of using the number 3. 
+
+    const board = document.querySelector('.game-board'); // Selects game board div.
+    
+    const cellElements = []; // This holds the .game-board children elements (i.e. the game board html cells)
 
     const initializeGameBoard = () => { // Puts the game-board children elements into cellElements array.
         
@@ -151,6 +175,22 @@ const gameBoard = (() => {
             
             }
         }
+
+    const playerButtonX = document.querySelector('.player-x');
+    const playerButtonO = document.querySelector('.player-o');
+
+    //Selects starting PlayerOne on click.
+    playerButtonX.addEventListener('click', () => {
+        gameLogic.getCurrentPlayer();
+        gameLogic.setPlayerOne();
+    });
+
+    //Selects starting PlayerTwo on click.
+    playerButtonO.addEventListener('click', () => {
+        gameLogic.getCurrentPlayer();
+        gameLogic.setPlayerTwo();
+    });
+    
 
     return {
         initializeGameBoard: initializeGameBoard,
