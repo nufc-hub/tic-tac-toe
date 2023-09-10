@@ -1,27 +1,81 @@
 :root {
+    --hunyadi-yellow: #FFBF69;
+    --royal-purple: #884AB2;
     --tangerine: #FA8128;
+    --lavender-tinge: #f0eef7;
     --tangerine-hover: #e16b17;
-    --mimosa: #ffd500;
+    --old-rose:  #BA797D;
+    --old-rose-deep: #a0686c;
+    --sandy-brown: #F4A261;
+    --content-font: 'Kanit', sans-serif;
 }
 
 body {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--tangerine);
+    background-color: var(--hunyadi-yellow);
 }
 
 header {
-
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 30px;
 }
 
-h1 {
-    font-family: 'Original Surfer', cursive;
+button {
+    border: 5px solid var(--old-rose-deep);
+    border-radius: 10px;
+    background-color: var(--sandy-brown);
+    color: var(--royal-purple);
+    transition: transform 0.2s;
+}
+
+button:hover {
+    transform: scale(1.02);
+}
+
+.page-title {
+    font-family: var(--content-font);
+    font-size: 80px;
+    color: var(--royal-purple);
 }
 
 p {
-    font-family: 'Kanit', sans-serif;
+    font-family: var(--content-font);
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--lavender-tinge);
+}
+
+span {
+    font-weight: bold;
+}
+
+.middle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--content-font);
+}
+
+.select-player {
+    display: flex;
+    flex-direction: column;
+    margin-right: 70px;
+}
+
+.player-x,
+.player-o {
+    height: 50px;
+    width: 150px;
+    font-size: 30px;
+}
+
+.player-x {
+    margin-bottom: 5px;
 }
 
 
@@ -31,17 +85,30 @@ p {
     width: 500px;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    border: 5px solid var(--mimosa);
+    border: 5px solid var(--old-rose);
     border-radius: 20px;
-    background-color: var(--mimosa);
+    background-color: var(--old-rose);
 }
 
 .cell {
-    border: 5px solid var(--mimosa);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 120px;
+    color: var(--royal-purple);
+    border: 5px solid var(--old-rose);
     border-radius: 20px;
     background-color: var(--tangerine);
 }
 
 .cell:hover {
     background-color: var(--tangerine-hover);
+}
+
+.restart-button {
+    height: 105px;
+    width: 150px;
+    margin-left: 70px;
+    border-radius: 10px;
+    font-size: 30px;
 }
