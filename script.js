@@ -7,21 +7,19 @@ const playerOne = playerFactory('X');
 const playerTwo = playerFactory('O');
 
 const gameLogic = (() => {
-    
-    //Sets the current player
-    let currentPlayer = playerOne
-
-    // This is the default board state. If win condition has been met it will change to true.
-    let endGameConditionMet = false;
-
-
     //const rows = (width) => //set width of gameboard;
     //const columns = (height) => //set height of gameboard
-    const boardContent = [ // 2D array that represents the game board. //
+    let boardContent = [ // 2D array that represents the game board. //
         ['','',''],
         ['','',''],
         ['','',''],
     ];
+    
+    //Sets the current player
+    let currentPlayer = playerOne
+
+    // Set to true when a first marker is placed in placeMarker function.
+    let gameStarted = false;
 
     //Use this to pass currentPlayer variable to the gameBoard module.
     //This is so currentPlayer variable does not need to be exposed outside gameLogic module.
@@ -32,15 +30,48 @@ const gameLogic = (() => {
     // This is to be passed to event listener in gameBoard module.
     // Used to select starting player.
     const setPlayerOne = () => {
-        currentPlayer = playerOne;
-        gameBoard.setTurnMessage(currentPlayer);
+        // This if statements prevents a player switching markers once the game has started.
+        if(gameStarted === true) {
+            return;
+        } else {
+            currentPlayer = playerOne;
+            gameBoard.setTurnMessage(currentPlayer);
+        }
     }
 
     // This is to be passed to event listener in gameBoard module.
     // Used to select starting player.
     const setPlayerTwo = () => {
-        currentPlayer = playerTwo;
-        gameBoard.setTurnMessage(currentPlayer);
+        // This if statements prevents a player switching markers once the game has started.
+        if(gameStarted === true) {
+            return;
+        } else {
+            currentPlayer = playerTwo;
+            gameBoard.setTurnMessage(currentPlayer);
+        }
+    }
+
+    // This is the default board state. If win condition has been met it will change to true.
+    let endGameConditionMet = false;
+
+    // Gets endGameConditionMet variable in order to add to gameBoard module.
+    const getEndGameConditionMet = () => {
+        return endGameConditionMet;
+    }
+
+    // Gets boardContent variable in order to add to gameBoard module.
+    const getBoardContent = () => {
+        return boardContent;
+    }
+
+    // Will be added to an event listener in order to reset the game board.
+    const resetBoardContent = () => {
+        endGameConditionMet = false;
+        boardContent = [
+            ['','',''],
+            ['','',''],
+            ['','',''],
+        ];
     }
 
     // Controls turn order.
@@ -102,6 +133,10 @@ const gameLogic = (() => {
         const row = Math.floor(cellIndex / 3);
         const col = cellIndex % 3;
 
+        // This is used in the setPlayerOne/Two function. It's to prevent a player switching markers once the game has started.
+        if(gameStarted === false) {
+            gameStarted = true;
+        }
 
         //Only allows a marker to be placed when the position in the boardContent array is empty.
         if (boardContent[row][col] === '' && endGameConditionMet === false) {
@@ -124,9 +159,13 @@ const gameLogic = (() => {
     }
 
     return {
+        boardContent: boardContent, //remove after debugging
         getCurrentPlayer: getCurrentPlayer,
         setPlayerOne: setPlayerOne,
         setPlayerTwo: setPlayerTwo,
+        getEndGameConditionMet: getEndGameConditionMet,
+        getBoardContent: getBoardContent,
+        resetBoardContent: resetBoardContent,
         placeMarker: placeMarker
     }
 })();
@@ -159,7 +198,7 @@ const gameBoard = (() => {
 
     const board = document.querySelector('.game-board'); // Selects game board div.
     
-    const cellElements = []; // This holds the .game-board children elements (i.e. the game board html cells)
+    let cellElements = []; // This holds the .game-board children elements (i.e. the game board html cells)
 
     const initializeGameBoard = () => { // Puts the game-board children elements into cellElements array.
         
@@ -172,25 +211,34 @@ const gameBoard = (() => {
             cellElement.addEventListener('click', (event) => {
                 gameLogic.placeMarker(event, cellElements);
             }); // Adds an event listener to each cellElement
-            
-            }
         }
+    }
 
-    const playerButtonX = document.querySelector('.player-x');
-    const playerButtonO = document.querySelector('.player-o');
+    const startingPlayerX = document.querySelector('.player-x');
+    const startingPlayerO = document.querySelector('.player-o');
 
     //Selects starting PlayerOne on click.
-    playerButtonX.addEventListener('click', () => {
+    startingPlayerX.addEventListener('click', () => {
         gameLogic.getCurrentPlayer();
         gameLogic.setPlayerOne();
     });
 
     //Selects starting PlayerTwo on click.
-    playerButtonO.addEventListener('click', () => {
+    startingPlayerO.addEventListener('click', () => {
         gameLogic.getCurrentPlayer();
         gameLogic.setPlayerTwo();
     });
     
+    const restartButton = document.querySelector('.restart-button');
+
+    //Restarts game on click.
+    restartButton.addEventListener('click', () => {
+        gameLogic.getEndGameConditionMet();
+        gameLogic.getBoardContent();
+        gameLogic.resetBoardContent();
+    });
+
+
 
     return {
         initializeGameBoard: initializeGameBoard,
