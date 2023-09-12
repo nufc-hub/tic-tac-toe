@@ -16,10 +16,13 @@ const gameLogic = (() => {
     ];
     
     //Sets the current player
-    let currentPlayer = playerOne
+    let currentPlayer = playerOne;
 
     // Set to true when a first marker is placed in placeMarker function.
     let gameStarted = false;
+
+    // This is the default board state. If win condition has been met it will change to true.
+    let endGameConditionMet = false;
 
     //Use this to pass currentPlayer variable to the gameBoard module.
     //This is so currentPlayer variable does not need to be exposed outside gameLogic module.
@@ -51,27 +54,25 @@ const gameLogic = (() => {
         }
     }
 
-    // This is the default board state. If win condition has been met it will change to true.
-    let endGameConditionMet = false;
-
-    // Gets endGameConditionMet variable in order to add to gameBoard module.
-    const getEndGameConditionMet = () => {
-        return endGameConditionMet;
-    }
-
-    // Gets boardContent variable in order to add to gameBoard module.
-    const getBoardContent = () => {
-        return boardContent;
-    }
 
     // Will be added to an event listener in order to reset the game board.
-    const resetBoardContent = () => {
-        endGameConditionMet = false;
+    const resetBoard = (board) => {
+        // Empties cells in 2d array.
         boardContent = [
             ['','',''],
             ['','',''],
             ['','',''],
         ];
+
+        //Loops through the cells in the DOM and clears the text content.
+        for (let i = 0; i < board.children.length; i++) {
+            board.children[i].textContent = '';
+        }
+        
+        // Sets variables back to starting values.
+        gameStarted = false;
+        endGameConditionMet = false;
+        setPlayerOne();
     }
 
     // Controls turn order.
@@ -83,6 +84,7 @@ const gameLogic = (() => {
     const checkWinCondition = (currentPlayer) => {
         
         for(let i = 0; i < 3; i++) {
+            // Horizontal
             if (boardContent[i][0] === currentPlayer.marker &&
                 boardContent[i][1] === currentPlayer.marker &&
                 boardContent[i][2] === currentPlayer.marker) {
@@ -92,7 +94,7 @@ const gameLogic = (() => {
                 return;
             }            
         }
-
+        //vertical
         for(let j = 0; j < 3; j++) {
             if (boardContent[0][j] === currentPlayer.marker &&
                 boardContent[1][j] === currentPlayer.marker &&
@@ -103,7 +105,7 @@ const gameLogic = (() => {
                 return;
             }
         }
-
+        //Diagonal
         if(boardContent[0][0] === currentPlayer.marker &&
             boardContent[1][1] === currentPlayer.marker &&
             boardContent[2][2] === currentPlayer.marker ||
@@ -149,10 +151,7 @@ const gameLogic = (() => {
 
             checkTieCondition(); //Checks if tie condition has been met.
 
-            setCurrentTurn(); // Next players turn
-
-            gameBoard.setTurnMessage(currentPlayer); //Indicates which players turn it is.
-
+            setCurrentTurn(); // Next players turn.
             
 
         }
@@ -163,9 +162,7 @@ const gameLogic = (() => {
         getCurrentPlayer: getCurrentPlayer,
         setPlayerOne: setPlayerOne,
         setPlayerTwo: setPlayerTwo,
-        getEndGameConditionMet: getEndGameConditionMet,
-        getBoardContent: getBoardContent,
-        resetBoardContent: resetBoardContent,
+        resetBoard: resetBoard,
         placeMarker: placeMarker
     }
 })();
@@ -173,23 +170,22 @@ const gameLogic = (() => {
 
 const gameBoard = (() => {
 
-    const turnMessageSelector = document.querySelector('.player');  // Selects the span element in the game message in UI.
+    //Selects P element.
+    const subtext = document.querySelector('.game-message');
 
     const setTurnMessage = (currentPlayer) => {
-        const turnMessage = turnMessageSelector.textContent = currentPlayer === playerTwo ? 'O' : 'X';
-        turnMessageSelector.textContent = turnMessage;
+        const turnMessage = `${currentPlayer.marker}, take your turn.`
+        subtext.textContent = turnMessage;
     }; // This is to change the text content of the game message.
-
-    const winMessageSelector = document.querySelector('.game-message');
 
     //This is the text that will be displayed when a win condition has been met.
     const setWinMessage = (currentPlayer) => {
-        winMessageSelector.textContent = `${currentPlayer.marker}, is the winner.`
+        subtext.textContent = `${currentPlayer.marker}, is the winner.`
     }
 
     //This is the text that will be displayed when a tie has occurred.
     const setTieMessage = () => {
-        winMessageSelector.textContent = `It's a tie.`;
+        subtext.textContent = `It's a tie.`;
     }
 
     //const boardSize = 3 // use if wanting to add ability to change board size. 
@@ -214,6 +210,7 @@ const gameBoard = (() => {
         }
     }
 
+    // Html player select buttons.
     const startingPlayerX = document.querySelector('.player-x');
     const startingPlayerO = document.querySelector('.player-o');
 
@@ -229,13 +226,13 @@ const gameBoard = (() => {
         gameLogic.setPlayerTwo();
     });
     
+    // Html reset button.
     const restartButton = document.querySelector('.restart-button');
 
-    //Restarts game on click.
+    // Restarts game on click.
     restartButton.addEventListener('click', () => {
-        gameLogic.getEndGameConditionMet();
-        gameLogic.getBoardContent();
-        gameLogic.resetBoardContent();
+        // Clears boardContent array variable & board (containing DOM cell elements) variable contents.
+        gameLogic.resetBoard(board);
     });
 
 
