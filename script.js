@@ -21,8 +21,11 @@ const gameLogic = (() => {
     // Set to true when a first marker is placed in placeMarker function.
     let gameStarted = false;
 
-    // This is the default board state. If win condition has been met it will change to true.
-    let endGameConditionMet = false;
+    // Returns true when a win is met.
+    let isWin = false;
+
+    // Returns true when a tie is met.
+    let isTie = false;
 
     //Use this to pass currentPlayer variable to the gameBoard module.
     //This is so currentPlayer variable does not need to be exposed outside gameLogic module.
@@ -71,7 +74,8 @@ const gameLogic = (() => {
         
         // Sets variables back to starting values.
         gameStarted = false;
-        endGameConditionMet = false;
+        isWin = false;
+        isTie = false;
         setPlayerOne();
     }
 
@@ -89,7 +93,7 @@ const gameLogic = (() => {
                 boardContent[i][1] === currentPlayer.marker &&
                 boardContent[i][2] === currentPlayer.marker) {
                 
-                endGameConditionMet = true
+                isWin = true
                 gameBoard.setWinMessage(currentPlayer); // Indicates who the winner is.
                 return;
             }            
@@ -100,7 +104,7 @@ const gameLogic = (() => {
                 boardContent[1][j] === currentPlayer.marker &&
                 boardContent[2][j] === currentPlayer.marker) {
                 
-                endGameConditionMet = true;
+                isWin = true;
                 gameBoard.setWinMessage(currentPlayer);
                 return;
             }
@@ -113,7 +117,7 @@ const gameLogic = (() => {
             boardContent[1][1] === currentPlayer.marker &&
             boardContent[2][0] === currentPlayer.marker) {
 
-                endGameConditionMet = true;
+                isWin = true;
                 gameBoard.setWinMessage(currentPlayer);
             }
     }
@@ -123,7 +127,7 @@ const gameLogic = (() => {
         const arrayIsFull = boardContent.every(row => row.every(cell => cell !== '')); //This checks to make sure no cell is empty in the array.
 
         if(arrayIsFull) {
-            endGameConditionMet = true;
+            isTie = true;
             gameBoard.setTieMessage();
         }
     }
@@ -141,7 +145,7 @@ const gameLogic = (() => {
         }
 
         //Only allows a marker to be placed when the position in the boardContent array is empty.
-        if (boardContent[row][col] === '' && endGameConditionMet === false) {
+        if (boardContent[row][col] === '' && isWin === false && isTie === false) {
 
             boardContent[row][col] = currentPlayer.marker; // Put the marker value into into the boardContent array at the position the cell was clicked.
             
@@ -151,9 +155,10 @@ const gameLogic = (() => {
 
             checkTieCondition(); //Checks if tie condition has been met.
 
-            setCurrentTurn(); // Next players turn.
-            
-
+            if (isWin !== true && isTie !== true) {
+                setCurrentTurn(); // Next players turn.
+                gameBoard.setTurnMessage(currentPlayer);
+            }
         }
     }
 
