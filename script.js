@@ -21,6 +21,9 @@ const gameLogic = (() => {
     // Set to true when a first marker is placed in placeMarker function.
     let gameStarted = false;
 
+    //As switch to let the computer know when to take its turn.
+    let playerTurnComplete = false
+
     // Returns true when a win is met.
     let isWin = false;
 
@@ -74,14 +77,26 @@ const gameLogic = (() => {
         
         // Sets variables back to starting values.
         gameStarted = false;
+        playerTurnComplete = false;
         isWin = false;
         isTie = false;
         setPlayerOne();
+
+        gameLogic.boardContent = boardContent;
+
     }
 
     // Controls turn order.
-    const setCurrentTurn = () => {
+    const setCurrentPlayer = () => {
         currentPlayer === playerOne ? currentPlayer = playerTwo : currentPlayer = playerOne; // Controls turn order.
+    }
+
+    // Next turn. Switches player and sets subtext to match player marker.
+    const setNextTurn = () => {
+        if (isWin !== true && isTie !== true) {
+            setCurrentPlayer(); // Next players turn.
+            gameBoard.setTurnMessage(currentPlayer);
+        }
     }
 
     // Checks to see if a win condition has been met.
@@ -122,14 +137,54 @@ const gameLogic = (() => {
             }
     }
 
+    //This checks to make sure no cell is empty in the array.
+    const isBoardFull = () => boardContent.every(row => row.every(cell => cell !== ''));
+
     // This checks for a tie.
     const checkTieCondition = () => { 
-        const arrayIsFull = boardContent.every(row => row.every(cell => cell !== '')); //This checks to make sure no cell is empty in the array.
+        isBoardFull();
 
-        if(arrayIsFull) {
+        if(isBoardFull()) {
             isTie = true;
             gameBoard.setTieMessage();
         }
+    }
+
+    const playerTurn = (clickedElement, row, col) => {
+        boardContent[row][col] = currentPlayer.marker; // Put the marker value into into the boardContent array at the position the cell was clicked.
+            
+        clickedElement.textContent = boardContent[row][col]; // Sets the text content of the cell elements to whatever the boardContent array values are.
+
+        checkWinCondition(currentPlayer); // Checks if win condition has been met.
+
+        checkTieCondition(); //Checks if tie condition has been met.
+
+        setNextTurn();
+
+        // Switches to true so that computer can take its turn.
+        playerTurnComplete = true;
+    }
+
+    const computerTurn = (cellElements, newRow, newCol) => {
+
+        // Add the marker to the boardContent array
+        boardContent[newRow][newCol] = currentPlayer.marker;
+
+        //Adds player marker to the DOM
+        const addRowCol = newRow * 3 + newCol;
+
+        
+        // Add the current players marker to the DOM cell element.
+        cellElements[addRowCol].textContent = currentPlayer.marker;
+
+        checkWinCondition(currentPlayer); // Checks if win condition has been met.
+
+        checkTieCondition(); //Checks if tie condition has been met.
+
+        setNextTurn();
+
+        // Switches to false when computer turn is over.
+        playerTurnComplete = false;
     }
 
     const placeMarker = (event, cellElements) => {
@@ -146,24 +201,35 @@ const gameLogic = (() => {
 
         //Only allows a marker to be placed when the position in the boardContent array is empty.
         if (boardContent[row][col] === '' && isWin === false && isTie === false) {
-
-            boardContent[row][col] = currentPlayer.marker; // Put the marker value into into the boardContent array at the position the cell was clicked.
+            playerTurn(clickedElement, row, col);
             
-            clickedElement.textContent = boardContent[row][col]; // Sets the text content of the cell elements to whatever the boardContent array values are.
-
-            checkWinCondition(currentPlayer); // Checks if win condition has been met.
-
-            checkTieCondition(); //Checks if tie condition has been met.
-
-            if (isWin !== true && isTie !== true) {
-                setCurrentTurn(); // Next players turn.
-                gameBoard.setTurnMessage(currentPlayer);
+            // The playerTurnComplete === true is needed to execute this code
+            // The isTie === false prevents code executing on tie. Thus preventing an infinite loop due to the do...while loop in placeComputerMaker().
+            if (playerTurnComplete === true && isWin === false && isTie === false) {
+                placeComputerMarker(cellElements);
             }
         }
     }
 
+    const placeComputerMarker = (cellElements) => {
+        let newRow;
+        let newCol;
+
+        do {newRow = Math.floor(Math.random()* 3);
+            newCol = Math.floor(Math.random()* 3);
+        } while (boardContent[newRow][newCol] !== '');
+        
+        if(gameStarted === false) {
+            gameStarted = true;
+        }
+
+        if (boardContent[newRow][newCol] === '' && isWin === false && isTie === false) {
+            computerTurn(cellElements, newRow, newCol);
+        }
+    }
+
     return {
-        boardContent: boardContent, //remove after debugging
+        boardContent: boardContent, // delete after debug
         getCurrentPlayer: getCurrentPlayer,
         setPlayerOne: setPlayerOne,
         setPlayerTwo: setPlayerTwo,
