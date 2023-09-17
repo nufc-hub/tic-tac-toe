@@ -157,12 +157,18 @@ const gameLogic = (() => {
 
         checkWinCondition(currentPlayer); // Checks if win condition has been met.
 
-        checkTieCondition(); //Checks if tie condition has been met.
+        if (isWin === true) {
+            return;
+        } else {
+            checkTieCondition(); //Checks if tie condition has been met.
 
-        setNextTurn();
+            setNextTurn();
 
-        // Switches to true so that computer can take its turn.
-        playerTurnComplete = true;
+            // Switches to true so that computer can take its turn.
+            playerTurnComplete = true;
+        }
+
+        
     }
 
     const computerTurn = (cellElements, newRow, newCol) => {
