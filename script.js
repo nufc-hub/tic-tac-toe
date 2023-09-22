@@ -1,10 +1,9 @@
 const playerFactory = (marker) => {
-
     return {marker};
 }
 
-const playerOne = playerFactory('X');
-const playerTwo = playerFactory('O');
+const playerOne = playerFactory('');
+const playerTwo = playerFactory('');
 
 const gameLogic = (() => {
     //const rows = (width) => //set width of gameboard;
@@ -36,13 +35,26 @@ const gameLogic = (() => {
         return currentPlayer;
     }
 
+    // Controls turn order.
+    const setCurrentPlayer = () => {
+        currentPlayer === playerOne ? currentPlayer = playerTwo : currentPlayer = playerOne; // Controls turn order.
+    }
+
+    const isGameOver = () => isWin || isTie;
+
+    //This checks to make sure no cell is empty in the array.
+    const isBoardFull = () => boardContent.every(row => row.every(cell => cell !== ''));
+
+
     // This is to be passed to event listener in gameBoard module.
     // Used to select starting player.
-    const setPlayerOne = () => {
+    const setMarkerX = () => {
         // This if statements prevents a player switching markers once the game has started.
         if(gameStarted === true) {
             return;
         } else {
+            playerOne.marker = 'X';
+            playerTwo.marker = 'O'
             currentPlayer = playerOne;
             gameBoard.setTurnMessage(currentPlayer);
         }
@@ -50,12 +62,14 @@ const gameLogic = (() => {
 
     // This is to be passed to event listener in gameBoard module.
     // Used to select starting player.
-    const setPlayerTwo = () => {
+    const setMarkerO = () => {
         // This if statements prevents a player switching markers once the game has started.
         if(gameStarted === true) {
             return;
         } else {
-            currentPlayer = playerTwo;
+            playerOne.marker = 'O';
+            playerTwo.marker = 'X';
+            currentPlayer = playerOne;
             gameBoard.setTurnMessage(currentPlayer);
         }
     }
@@ -80,22 +94,35 @@ const gameLogic = (() => {
         playerTurnComplete = false;
         isWin = false;
         isTie = false;
-        setPlayerOne();
+        setMarkerX();
 
         gameLogic.boardContent = boardContent;
 
     }
 
-    // Controls turn order.
-    const setCurrentPlayer = () => {
-        currentPlayer === playerOne ? currentPlayer = playerTwo : currentPlayer = playerOne; // Controls turn order.
-    }
 
     // Next turn. Switches player and sets subtext to match player marker.
     const setNextTurn = () => {
         if (isWin !== true && isTie !== true) {
             setCurrentPlayer(); // Next players turn.
             gameBoard.setTurnMessage(currentPlayer);
+        }
+    }
+
+    // Checks for win, tie and continue game conditions.
+    const checkGameState = (currentPlayer) => {
+        const winner = checkWinCondition(currentPlayer);
+        const tie = checkTieCondition();
+        if (winner) {
+            gameBoard.setWinMessage(currentPlayer); // Indicates who the winner is.
+            isWin = true;
+            return true;
+        } else if (tie) {
+            gameBoard.setTieMessage();
+            isTie = true;
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -108,9 +135,7 @@ const gameLogic = (() => {
                 boardContent[i][1] === currentPlayer.marker &&
                 boardContent[i][2] === currentPlayer.marker) {
                 
-                isWin = true
-                gameBoard.setWinMessage(currentPlayer); // Indicates who the winner is.
-                return;
+                return true;
             }            
         }
         //vertical
@@ -119,9 +144,7 @@ const gameLogic = (() => {
                 boardContent[1][j] === currentPlayer.marker &&
                 boardContent[2][j] === currentPlayer.marker) {
                 
-                isWin = true;
-                gameBoard.setWinMessage(currentPlayer);
-                return;
+                return true;
             }
         }
         //Diagonal
@@ -132,22 +155,18 @@ const gameLogic = (() => {
             boardContent[1][1] === currentPlayer.marker &&
             boardContent[2][0] === currentPlayer.marker) {
 
-                isWin = true;
-                gameBoard.setWinMessage(currentPlayer);
+                return true;
             }
+        return false;
     }
 
-    //This checks to make sure no cell is empty in the array.
-    const isBoardFull = () => boardContent.every(row => row.every(cell => cell !== ''));
 
     // This checks for a tie.
     const checkTieCondition = () => { 
-        isBoardFull();
-
         if(isBoardFull()) {
-            isTie = true;
-            gameBoard.setTieMessage();
+            return true;
         }
+        
     }
 
     const playerTurn = (clickedElement, row, col) => {
@@ -155,19 +174,15 @@ const gameLogic = (() => {
             
         clickedElement.textContent = boardContent[row][col]; // Sets the text content of the cell elements to whatever the boardContent array values are.
 
-        checkWinCondition(currentPlayer); // Checks if win condition has been met.
+        checkGameState(currentPlayer); // Checks if win condition has been met.
 
-        if (isWin === true) {
-            return;
-        } else {
-            checkTieCondition(); //Checks if tie condition has been met.
-
+        if (!checkGameState(currentPlayer)) {
             setNextTurn();
 
             // Switches to true so that computer can take its turn.
             playerTurnComplete = true;
         }
-
+        
         
     }
 
@@ -183,7 +198,7 @@ const gameLogic = (() => {
         // Add the current players marker to the DOM cell element.
         cellElements[addRowCol].textContent = currentPlayer.marker;
 
-        checkWinCondition(currentPlayer); // Checks if win condition has been met.
+        checkGameState(currentPlayer); // Checks if win condition has been met.
 
         checkTieCondition(); //Checks if tie condition has been met.
 
@@ -200,7 +215,7 @@ const gameLogic = (() => {
         const row = Math.floor(cellIndex / 3);
         const col = cellIndex % 3;
 
-        // This is used in the setPlayerOne/Two function. It's to prevent a player switching markers once the game has started.
+        // This is used in the setMarkerX/Two function. It's to prevent a player switching markers once the game has started.
         if(gameStarted === false) {
             gameStarted = true;
         }
@@ -216,6 +231,7 @@ const gameLogic = (() => {
             }
         }
     }
+
 
     const placeComputerMarker = (cellElements) => {
         let newRow;
@@ -234,15 +250,24 @@ const gameLogic = (() => {
         }
     }
 
+
+
     return {
         boardContent: boardContent, // delete after debug
         getCurrentPlayer: getCurrentPlayer,
-        setPlayerOne: setPlayerOne,
-        setPlayerTwo: setPlayerTwo,
+        setMarkerX: setMarkerX,
+        setMarkerO: setMarkerO,
         resetBoard: resetBoard,
         placeMarker: placeMarker
     }
 })();
+
+
+
+
+
+
+
 
 
 const gameBoard = (() => {
@@ -294,13 +319,13 @@ const gameBoard = (() => {
     //Selects starting PlayerOne on click.
     startingPlayerX.addEventListener('click', () => {
         gameLogic.getCurrentPlayer();
-        gameLogic.setPlayerOne();
+        gameLogic.setMarkerX();
     });
 
     //Selects starting PlayerTwo on click.
     startingPlayerO.addEventListener('click', () => {
         gameLogic.getCurrentPlayer();
-        gameLogic.setPlayerTwo();
+        gameLogic.setMarkerO();
     });
     
     // Html reset button.
