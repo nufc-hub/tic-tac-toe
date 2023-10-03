@@ -39,12 +39,6 @@ const gameLogic = (() => {
             return true;
         };
     }
-    
-    //Use this to pass currentPlayer variable to the gameBoard module.
-    //This is so currentPlayer variable does not need to be exposed outside gameLogic module.
-    const getCurrentPlayer = () => {
-        return currentPlayer;
-    }
 
     // Controls turn order.
     const setCurrentPlayer = () => {
@@ -210,7 +204,6 @@ const gameLogic = (() => {
         gameModes: gameModes,
         currentGameMode: currentGameMode,
         isGameStarted: isGameStarted,
-        getCurrentPlayer: getCurrentPlayer,
         placeHumanMarker: placeHumanMarker,
         placeAIMarkerEasy: placeAIMarkerEasy,
         resetGame: resetGame
@@ -293,7 +286,6 @@ const gameBoard = (() => {
         if(gameLogic.isGameStarted()){
             resetBoard();
         } 
-        gameLogic.getCurrentPlayer();
         humanPlayer.marker = 'X';
         computerPlayer.marker = 'O';
         gameLogic.currentPlayer = humanPlayer;
@@ -312,19 +304,19 @@ const gameBoard = (() => {
         if(gameLogic.isGameStarted()){
             resetBoard();
         } 
-        gameLogic.getCurrentPlayer();
         humanPlayer.marker = 'O';
         computerPlayer.marker = 'X';
         gameLogic.currentPlayer = computerPlayer;
         setTurnMessage(gameLogic.currentPlayer);
-        gameLogic.placeAIMarkerEasy(gameLogic.gameModes, cellElements);
+
+        setTimeout(() => {
+            gameLogic.placeAIMarkerEasy(gameLogic.gameModes, cellElements);
+        }, 300);  
     }
 
     //Selects starting computerPlayer on click.
     humanPlayerO.addEventListener('click', () => {
-        setTimeout(() => {
-            setMarkerO(cellElements);
-        }, 300);
+        setMarkerO(cellElements)
     });
     
     // Html reset button.
@@ -339,7 +331,7 @@ const gameBoard = (() => {
         for (let i = 0; i < board.children.length; i++) {
             board.children[i].textContent = '';
         }
-        setTurnMessage(humanPlayer);
+        setMarkerX();
     }
 
 
