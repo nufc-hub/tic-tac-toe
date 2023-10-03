@@ -26,6 +26,10 @@ const gameLogic = (() => {
     //Sets the current player
     let currentPlayer = humanPlayer;
 
+    //This to pass to the setMarkerO function in gameBoard.
+    const changePlayer = (player) => {
+        currentPlayer = player;
+    }
     // Set to true when a first marker is placed in o placeHuman/ComputerMarker function.
     let gameStarted = false;
 
@@ -169,11 +173,12 @@ const gameLogic = (() => {
         if(gameStarted === false) {
             toggleGameStarted();
         }
-        
+
+
         if (checkGameState()) {
             return;
         } else if (currentPlayer === computerPlayer && currentGameMode === gameModes.EASY) {
-            
+
             let newRow;
             let newCol;
     
@@ -201,6 +206,8 @@ const gameLogic = (() => {
 
     return {
         boardContent: boardContent,
+        currentPlayer: currentPlayer,
+        changePlayer: changePlayer,
         gameModes: gameModes,
         currentGameMode: currentGameMode,
         isGameStarted: isGameStarted,
@@ -306,11 +313,11 @@ const gameBoard = (() => {
         } 
         humanPlayer.marker = 'O';
         computerPlayer.marker = 'X';
-        gameLogic.currentPlayer = computerPlayer;
+        gameLogic.changePlayer(computerPlayer);
         setTurnMessage(gameLogic.currentPlayer);
-
+        console.log("currentPlayer:", gameLogic.currentPlayer);
         setTimeout(() => {
-            gameLogic.placeAIMarkerEasy(gameLogic.gameModes, cellElements);
+            gameLogic.placeAIMarkerEasy(cellElements);
         }, 300);  
     }
 
@@ -331,6 +338,8 @@ const gameBoard = (() => {
         for (let i = 0; i < board.children.length; i++) {
             board.children[i].textContent = '';
         }
+
+        //Resets the game so human player starts as X marker.
         setMarkerX();
     }
 
