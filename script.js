@@ -20,7 +20,8 @@ const gameLogic = (() => {
         HARD: 'hard'
     }
 
-    let currentGameMode = gameModes.easy;
+    //When set to gameModes.easy, game is played in easy mode.
+    let currentGameMode = gameModes.EASY;
     
     //Sets the current player
     let currentPlayer = humanPlayer;
@@ -28,12 +29,17 @@ const gameLogic = (() => {
     // Set to true when a first marker is placed in o placeHuman/ComputerMarker function.
     let gameStarted = false;
 
-    // Returns true when a win is met.
-    let isWin = false;
+    const toggleGameStarted = () => {
+        gameStarted = !gameStarted;
+    }
 
-    // Returns true when a tie is met.
-    let isTie = false;
-
+    //Passed into the setX/OMarker functions in gameBoard.
+    const isGameStarted = () => {
+        if (gameStarted === true) {
+            return true;
+        };
+    }
+    
     //Use this to pass currentPlayer variable to the gameBoard module.
     //This is so currentPlayer variable does not need to be exposed outside gameLogic module.
     const getCurrentPlayer = () => {
@@ -45,69 +51,13 @@ const gameLogic = (() => {
         currentPlayer === humanPlayer ? currentPlayer = computerPlayer : currentPlayer = humanPlayer; // Controls turn order.
     }
 
-    const isGameOver = () => isWin || isTie;
-
     //This checks to make sure no cell is empty in the array.
     const isBoardFull = () => boardContent.every(row => row.every(cell => cell !== ''));
-
-
-    // This is to be passed to event listener in gameBoard module.
-    // Used to select starting player.
-    const setMarkerX = (board) => {
-        // This if statements prevents a player switching markers once the game has started.
-        if (isWin || isTie || gameStarted) {
-            resetBoard(board);
-        } 
-        
-        humanPlayer.marker = 'X';
-        computerPlayer.marker = 'O';
-        currentPlayer = humanPlayer;
-        gameBoard.setTurnMessage(currentPlayer);
-    }
-
-    // This is to be passed to event listener in gameBoard module.
-    // Used to select starting player.
-    const setMarkerO = (board, cellElements) => {
-        if (isWin || isTie || gameStarted) {
-            resetBoard(board);
-        }
     
-        humanPlayer.marker = 'O';
-        computerPlayer.marker = 'X';
-        currentPlayer = computerPlayer;
-        gameStarted = true;
-        placeAIMarkerEasy(cellElements);
-        gameBoard.setTurnMessage(currentPlayer);
-    }
-    
-
-    // Will be added to an event listener in order to reset the game board.
-    const resetBoard = (board) => {
-        // Empties cells in 2d array.
-        boardContent = [
-            ['','',''],
-            ['','',''],
-            ['','',''],
-        ];
-
-        //Loops through the cells in the DOM and clears the text content.
-        for (let i = 0; i < board.children.length; i++) {
-            board.children[i].textContent = '';
-        }
-        
-        // Sets variables back to starting values.
-        gameStarted = false;
-        isWin = false;
-        isTie = false;
-        setMarkerX(board);
-        gameLogic.boardContent = boardContent;
-
-    }
-
 
     // Next turn. Switches player and sets subtext to match player marker.
     const setNextTurn = () => {
-        if (isWin !== true && isTie !== true) {
+        if (!checkGameState()) {
             setCurrentPlayer(); // Next players turn.
             gameBoard.setTurnMessage(currentPlayer);
         }
@@ -119,11 +69,9 @@ const gameLogic = (() => {
         const tie = checkTieCondition();
         if (winner) {
             gameBoard.setWinMessage(currentPlayer); // Indicates who the winner is.
-            isWin = true;
             return true;
         } else if (tie) {
             gameBoard.setTieMessage();
-            isTie = true;
             return true;
         } else {
             return false;
@@ -212,22 +160,26 @@ const gameLogic = (() => {
         const row = Math.floor(cellIndex / 3);
         const col = cellIndex % 3;
 
-        // This is used in the setMarkerX/O function. It's to prevent a player switching markers once the game has started.
+        // This is used  to prevent a player switching markers once the game has started.
         if(gameStarted === false) {
-            gameStarted = true;
+            toggleGameStarted();
         }
 
         //Only allows a marker to be placed when the position in the boardContent array is empty.
-        if (boardContent[row][col] === '' && currentPlayer === humanPlayer && !isGameOver()) {
+        if (boardContent[row][col] === '' && currentPlayer === humanPlayer && !checkGameState()) {
             playerTurn(clickedElement, row, col);  
         }
     }
 
     const placeAIMarkerEasy = (cellElements) => {
-        if (isWin || isTie) {
-            return;
+        if(gameStarted === false) {
+            toggleGameStarted();
         }
-        if (currentPlayer === computerPlayer && currentGameMode === gameModes.easy) {
+        
+        if (checkGameState()) {
+            return;
+        } else if (currentPlayer === computerPlayer && currentGameMode === gameModes.EASY) {
+            
             let newRow;
             let newCol;
     
@@ -239,19 +191,29 @@ const gameLogic = (() => {
         }  
     };
 
+    const resetGame = () => {
+        // Empties cells in 2d array.
+        boardContent = [
+            ['','',''],
+            ['','',''],
+            ['','',''],
+        ];
+        
+        toggleGameStarted();
+        currentPlayer = humanPlayer;
+    }
 
 
 
     return {
-        boardContent: boardContent, // delete after debug
+        boardContent: boardContent,
         gameModes: gameModes,
         currentGameMode: currentGameMode,
+        isGameStarted: isGameStarted,
         getCurrentPlayer: getCurrentPlayer,
-        setMarkerX: setMarkerX,
-        setMarkerO: setMarkerO,
-        resetBoard: resetBoard,
         placeHumanMarker: placeHumanMarker,
-        placeAIMarkerEasy: placeAIMarkerEasy
+        placeAIMarkerEasy: placeAIMarkerEasy,
+        resetGame: resetGame
     }
 })();
 
@@ -324,30 +286,67 @@ const gameBoard = (() => {
 
 
     // Html player select buttons.
-    const startingPlayerX = document.querySelector('.player-x');
-    const startingPlayerO = document.querySelector('.player-o');
+    const humanPlayerX = document.querySelector('.player-x');
+    const humanPlayerO = document.querySelector('.player-o');
+
+    const setMarkerX = () => {
+        if(gameLogic.isGameStarted()){
+            resetBoard();
+        } 
+        gameLogic.getCurrentPlayer();
+        humanPlayer.marker = 'X';
+        computerPlayer.marker = 'O';
+        gameLogic.currentPlayer = humanPlayer;
+        setTurnMessage(gameLogic.currentPlayer);
+       
+    }
 
     //Selects starting humanPlayer on click.
-    startingPlayerX.addEventListener('click', () => {
-        gameLogic.getCurrentPlayer();
-        gameLogic.setMarkerX(board);
+    humanPlayerX.addEventListener('click', () => {
+        gameLogic.isGameStarted();
+        // Resets board if game has started. 
+            setMarkerX();
     });
 
-    //Selects starting computerPlayer on click.
-    startingPlayerO.addEventListener('click', () => {
+    const setMarkerO = (cellElements) => {
+        if(gameLogic.isGameStarted()){
+            resetBoard();
+        } 
         gameLogic.getCurrentPlayer();
+        humanPlayer.marker = 'O';
+        computerPlayer.marker = 'X';
+        gameLogic.currentPlayer = computerPlayer;
+        setTurnMessage(gameLogic.currentPlayer);
+        gameLogic.placeAIMarkerEasy(gameLogic.gameModes, cellElements);
+    }
+
+    //Selects starting computerPlayer on click.
+    humanPlayerO.addEventListener('click', () => {
         setTimeout(() => {
-            gameLogic.setMarkerO(board, cellElements);
+            setMarkerO(cellElements);
         }, 300);
     });
     
     // Html reset button.
     const restartButton = document.querySelector('.restart-button');
 
+    // Will be added to an event listener in order to reset the game board.
+    const resetBoard = () => {
+        
+        gameLogic.resetGame();
+
+        //Loops through the cells in the DOM and clears the text content.
+        for (let i = 0; i < board.children.length; i++) {
+            board.children[i].textContent = '';
+        }
+        setTurnMessage(humanPlayer);
+    }
+
+
     // Restarts game on click.
     restartButton.addEventListener('click', () => {
         // Clears boardContent array variable & board (containing DOM cell elements) variable contents.
-        gameLogic.resetBoard(board);
+        resetBoard();
     });
 
 
@@ -356,7 +355,8 @@ const gameBoard = (() => {
         initializeGameBoard: initializeGameBoard,
         setTurnMessage: setTurnMessage,
         setWinMessage: setWinMessage,
-        setTieMessage: setTieMessage
+        setTieMessage: setTieMessage,
+        setMarkerX: setMarkerX
     }
 
 
