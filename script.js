@@ -63,7 +63,7 @@ const gameLogic = (() => {
 
     // Checks for win, tie and continue game conditions.
     const checkGameState = () => {
-        const winner = checkWinCondition();
+        const winner = checkWinCondition(currentPlayer.marker); // Pass currentPlayer's marker
         const tie = checkTieCondition();
         if (winner) {
             gameBoard.setWinMessage(currentPlayer); // Indicates who the winner is.
@@ -75,41 +75,41 @@ const gameLogic = (() => {
             return false;
         }
     }
+    
 
     // Checks to see if a win condition has been met.
-    const checkWinCondition = () => {
-        
+    const checkWinCondition = (player) => {
         for(let i = 0; i < 3; i++) {
             // Horizontal
-            if (boardContent[i][0] !== '' &&
-                boardContent[i][1] === boardContent[i][0] &&
-                boardContent[i][2] === boardContent[i][0]) {
+            if (boardContent[i][0] === player &&
+                boardContent[i][1] === player &&
+                boardContent[i][2] === player) {
                 
                 return true;
             }            
         }
-        //vertical
+        // Vertical
         for(let j = 0; j < 3; j++) {
-            if (boardContent[0][j] !== '' &&
-                boardContent[1][j] === boardContent[0][j] &&
-                boardContent[2][j] === boardContent[0][j]) {
+            if (boardContent[0][j] === player &&
+                boardContent[1][j] === player &&
+                boardContent[2][j] === player) {
                 
                 return true;
             }
         }
-        //Diagonal
-        if(boardContent[0][0] !== '' &&
-            boardContent[1][1] === boardContent[0][0] &&
-            boardContent[2][2] === boardContent[0][0] ||
-            boardContent[0][2] !== '' &&
-            boardContent[1][1] === boardContent[0][2] &&
-            boardContent[2][0] === boardContent[0][2]) {
-                return true;
-            }
-
+        // Diagonal
+        if ((boardContent[0][0] === player &&
+             boardContent[1][1] === player &&
+             boardContent[2][2] === player) ||
+            (boardContent[0][2] === player &&
+             boardContent[1][1] === player &&
+             boardContent[2][0] === player)) {
+            return true;
+        }
+    
         return false;
     }
-
+    
 
     // This checks for a tie.
     const checkTieCondition = () => { 
@@ -169,27 +169,91 @@ const gameLogic = (() => {
         }
     }
 
-    const placeAIMarkerEasy = (cellElements) => {
+    const AIMarkerEasy = (cellElements) => {
+        let newRow;
+        let newCol;
+    
+        do {newRow = Math.floor(Math.random()* 3);
+            newCol = Math.floor(Math.random()* 3);
+        } while (boardContent[newRow][newCol] !== '');
+        
+        computerTurn(cellElements, newRow, newCol);
+    }
+
+    const placeAIMarker = (cellElements) => {
         if(gameStarted === false) {
             toggleGameStarted();
         }
 
-
         if (checkGameState()) {
             return;
-        } else if (currentPlayer === computerPlayer && currentGameMode === gameModes.EASY) {
-
-            let newRow;
-            let newCol;
-    
-            do {newRow = Math.floor(Math.random()* 3);
-                newCol = Math.floor(Math.random()* 3);
-            } while (boardContent[newRow][newCol] !== '');
-            
-            computerTurn(cellElements, newRow, newCol);
-        }  
+        } else if (currentPlayer === computerPlayer && gameLogic.currentGameMode === gameModes.EASY) {
+            AIMarkerEasy(cellElements);
+        }  else if (currentPlayer === computerPlayer && gameLogic.currentGameMode === gameModes.HARD) {
+            const bestMove = findBestMove(boardContent);
+            computerTurn(cellElements, bestMove.row, bestMove.col);
+        }
     };
 
+    const minimax = (board, depth, maximizingPlayer) => {
+        const scores = {
+            X: -10,
+            O: 10,
+            tie: 0
+        };
+    
+        const currentPlayer = maximizingPlayer ? computerPlayer : humanPlayer;
+        const opponentPlayer = maximizingPlayer ? humanPlayer : computerPlayer;
+    
+        if (checkWinCondition(computerPlayer.marker)) {
+            return scores.O;
+        } else if (checkWinCondition(humanPlayer.marker)) {
+            return scores.X;
+        } else if (isBoardFull()) {
+            return scores.tie;
+        }
+    
+        let bestScore = maximizingPlayer ? -Infinity : Infinity;
+        let bestMove = null;
+    
+        //Loops through all empty cells on the board.
+        //Simulates placing the currentPlayers marker in the cell.
+        //Then makes a recursive call to minimax with the board in its updated state.
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 3; col++) {
+                if (board[row][col] === '') {
+                    board[row][col] = currentPlayer.marker;
+                    const score = minimax(board, depth + 1, !maximizingPlayer);
+                    board[row][col] = ''; // Undo the move
+    
+                    if ((maximizingPlayer && score > bestScore) || (!maximizingPlayer && score < bestScore)) {
+                        bestScore = score;
+                        bestMove = { row, col };
+                    }
+                }
+            }
+        }
+    
+        if (depth === 0) {
+            //The return value represents the
+            // best move to take at the top-level of the tree.
+            return bestMove; 
+        }
+        
+        //This is the score calculated at the current node.
+        return bestScore;
+    };
+    
+
+    //Finds best move for computer
+    //Calls the minimax function on each available move 
+    //then returns the best move. 
+    const findBestMove = (board) => {
+        const bestMove = minimax(board, 0, true);
+        return bestMove;
+    };
+    
+    
     const resetGame = () => {
         // Empties cells in 2d array.
         boardContent = [
@@ -212,7 +276,7 @@ const gameLogic = (() => {
         currentGameMode: currentGameMode,
         isGameStarted: isGameStarted,
         placeHumanMarker: placeHumanMarker,
-        placeAIMarkerEasy: placeAIMarkerEasy,
+        placeAIMarker: placeAIMarker,
         resetGame: resetGame
     }
 })();
@@ -262,11 +326,36 @@ const gameBoard = (() => {
                     gameLogic.placeHumanMarker(event, cellElements);
                 }, 0);
                 setTimeout(() => {
-                    gameLogic.placeAIMarkerEasy(cellElements);
+                    gameLogic.placeAIMarker(cellElements);
                 }, 700);
             });
         }
     }
+
+    const easyIndicator = document.getElementById('easy-indicator');
+    const hardIndicator = document.getElementById('hard-indicator');
+    const playerXIndicator = document.getElementById('player-x-indicator');
+    const playerOIndicator = document.getElementById('player-o-indicator');
+
+    const toggleIndicatorColor = () => {
+        if (gameLogic.currentGameMode === gameLogic.gameModes.EASY) {
+            easyIndicator.style.backgroundColor = '#884AB2';
+            hardIndicator.style.backgroundColor = '#f0eef7';
+        } else if (gameLogic.currentGameMode === gameLogic.gameModes.HARD) {
+            hardIndicator.style.backgroundColor = '#884AB2';
+            easyIndicator.style.backgroundColor = '#f0eef7';
+        }
+
+        if (gameLogic.currentPlayer.marker === 'X') {
+            playerXIndicator.style.backgroundColor = '#884AB2';
+            playerOIndicator.style.backgroundColor = '#f0eef7';
+        } else if (gameLogic.currentPlayer.marker === 'O') {
+            playerOIndicator.style.backgroundColor = '#884AB2';
+            playerXIndicator.style.backgroundColor = '#f0eef7';
+        }
+    }
+
+    toggleIndicatorColor();
 
     //Easy game-mode.
     const easyMode = document.querySelector('.easy-mode');
@@ -274,13 +363,22 @@ const gameBoard = (() => {
     const hardMode = document.querySelector('.hard-mode');
     //Sets the game mode.
     const setGameMode = (mode) => {
-        currentGameMode = mode;
+        gameLogic.currentGameMode = mode;
     }
 
     //Selects easy game-mode.
-    easyMode.addEventListener('click', () => setGameMode(gameLogic.gameModes.EASY));
+    easyMode.addEventListener('click', () => {
+        resetBoard();
+        setGameMode(gameLogic.gameModes.EASY);
+        toggleIndicatorColor()
+    });
     //Selects hard game-mode.
-    hardMode.addEventListener('click', () => setGameMode(gameLogic.gameModes.HARD));
+    hardMode.addEventListener('click', () => {
+        console.log('Clicked on Hard Mode');
+        resetBoard();
+        setGameMode(gameLogic.gameModes.HARD)
+        toggleIndicatorColor()
+    });
 
 
 
@@ -300,13 +398,6 @@ const gameBoard = (() => {
        
     }
 
-    //Selects starting humanPlayer on click.
-    humanPlayerX.addEventListener('click', () => {
-        gameLogic.isGameStarted();
-        // Resets board if game has started. 
-            setMarkerX();
-    });
-
     const setMarkerO = (cellElements) => {
         if(gameLogic.isGameStarted()){
             resetBoard();
@@ -317,13 +408,22 @@ const gameBoard = (() => {
         setTurnMessage(gameLogic.currentPlayer);
         console.log("currentPlayer:", gameLogic.currentPlayer);
         setTimeout(() => {
-            gameLogic.placeAIMarkerEasy(cellElements);
+            gameLogic.placeAIMarker(cellElements);
         }, 300);  
     }
 
+    //Selects starting humanPlayer on click.
+    humanPlayerX.addEventListener('click', () => {
+        gameLogic.isGameStarted();
+        // Resets board if game has started. 
+            setMarkerX();
+            toggleIndicatorColor();
+    });
+
     //Selects starting computerPlayer on click.
     humanPlayerO.addEventListener('click', () => {
-        setMarkerO(cellElements)
+        setMarkerO(cellElements);
+        toggleIndicatorColor();
     });
     
     // Html reset button.
@@ -343,11 +443,11 @@ const gameBoard = (() => {
         setMarkerX();
     }
 
-
     // Restarts game on click.
     restartButton.addEventListener('click', () => {
         // Clears boardContent array variable & board (containing DOM cell elements) variable contents.
         resetBoard();
+        toggleIndicatorColor();
     });
 
 
