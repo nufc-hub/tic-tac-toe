@@ -1,12 +1,12 @@
 :root {
     --hunyadi-yellow: #FFBF69;
-    --royal-purple: #884AB2;
-    --tangerine: #FA8128;
     --lavender-tinge: #f0eef7;
-    --tangerine-hover: #e16b17;
     --old-rose:  #BA797D;
     --old-rose-deep: #a0686c;
+    --royal-purple: #884AB2;
     --sandy-brown: #F4A261;
+    --tangerine: #FA8128;
+    --tangerine-hover: #e16b17;
     --content-font: 'Kanit', sans-serif;
 }
 
@@ -61,22 +61,44 @@ span {
     font-family: var(--content-font);
 }
 
-.select-player {
+.left-side-container {
+    display: flex;
+}
+
+.left-side-buttons {
     display: flex;
     flex-direction: column;
-    margin-right: 70px;
+    margin-right: 20px;
+}
+
+.toggle-indicators {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.circle {
+    display: flex;
+    flex-direction: column;
+    width: 30px;
+    height: 30px;
+    margin-right: 40px;
+    background-color: #f0eef7;
+    border-radius: 50%;
 }
 
 .player-x,
-.player-o {
+.player-o,
+.easy-mode,
+.hard-mode {
     height: 50px;
     width: 150px;
     font-size: 30px;
 }
 
-.player-x {
-    margin-bottom: 5px;
-}
+
 
 
 .game-board {
@@ -108,7 +130,7 @@ span {
 .restart-button {
     height: 105px;
     width: 150px;
-    margin-left: 70px;
+    margin-left: 80px;
     border-radius: 10px;
     font-size: 30px;
 }
