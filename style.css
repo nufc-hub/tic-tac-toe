@@ -85,7 +85,8 @@ span {
     width: 30px;
     height: 30px;
     margin-right: 40px;
-    background-color: #f0eef7;
+    border: 2px solid var(--sandy-brown);
+    background-color: var(--lavender-tinge);
     border-radius: 50%;
 }
 
